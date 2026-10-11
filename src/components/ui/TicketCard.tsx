@@ -13,17 +13,17 @@ export function TicketCard({ className = '', children, ...props }: TicketCardPro
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="w-3 h-3 rounded-full bg-background" />
         ))}
-      </motion.div>
+      </div>
       <div className="absolute top-0 bottom-0 right-0 flex flex-col justify-between py-2 translate-x-1/2">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="w-3 h-3 rounded-full bg-background" />
         ))}
-      </motion.div>
+      </div>
       {/* Content */}
       <div className="relative z-10 px-2">
         {children}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { Camera, Image as ImageIcon, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { TravelogueClient } from './TravelogueClient'
-import { ClientMotionDiv } from './ClientMotionDiv'
+
 
 export const instant = false
 
@@ -31,6 +31,7 @@ export default async function TraveloguePage() {
     .eq('memberships.user_id', user.id)
     .is('memberships.left_at', null)
 
+  console.log('PUBLIC URL FOR DROP:', drops?.[0]?.object_path ? supabase.storage.from('travelogue').getPublicUrl(drops[0].object_path).data.publicUrl : 'no drop');
   return (
     <div className="flex flex-col gap-8 max-w-2xl mx-auto pb-12">
       <div className="flex items-center gap-3">
@@ -61,12 +62,12 @@ export default async function TraveloguePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {drops.map((drop: any) => (
-              <ClientMotionDiv key={drop.id} initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="bg-background rounded-2xl overflow-hidden border border-foreground/10 group">
+              <div key={drop.id}    className="bg-background rounded-2xl overflow-hidden border border-foreground/10 group">
                 <div className="aspect-square bg-panel flex items-center justify-center relative">
                   {drop.object_path ? (
                     // We construct the public URL from the travelogue bucket
                     <img 
-                      src={supabase.storage.from('travelogue').getPublicUrl(drop.object_path).data.publicUrl} 
+                      src={`\${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/travelogue/\${drop.object_path}`} 
                       alt={drop.caption}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
@@ -83,7 +84,7 @@ export default async function TraveloguePage() {
                 <div className="p-4">
                   <p className="text-sm">{drop.caption || 'No caption provided.'}</p>
                 </div>
-              </ClientMotionDiv>
+              </div>
             ))}
           </div>
         )}
@@ -91,4 +92,5 @@ export default async function TraveloguePage() {
     </div>
   )
 }
+
 
