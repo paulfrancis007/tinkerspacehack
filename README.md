@@ -87,6 +87,11 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 6. Testing Credentials
+You can use the following pre-configured test accounts to log in and explore the app:
+* **Account A:** `testa@example.com` / `123456`
+* **Account B:** `testB@example.com` / `poiuyt`
+
 ---
 
 ## 🎨 Theme Configuration
