@@ -67,7 +67,7 @@ export default async function TraveloguePage() {
                   {drop.object_path ? (
                     // We construct the public URL from the travelogue bucket
                     <img 
-                      src={`\${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/travelogue/\${drop.object_path}`} 
+                      src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/travelogue/${drop.object_path}`} 
                       alt={drop.caption}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
