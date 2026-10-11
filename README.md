@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SIDEQUEST 🛫🚂🚍
 
-## Getting Started
+**SIDEQUEST** is an ephemeral, real-time social platform built for travelers. Whether you're on a 12-hour flight or a cross-country train ride, SIDEQUEST connects you with fellow passengers on the exact same journey. 
 
-First, run the development server:
+Check in to your specific transit service, enter the virtual Lounge, and break the ice through ephemeral chats, Tic-Tac-Toe games, and real-time audio/video calls. Once the journey ends, the Lounge disappears—but the connections you made stay with you.
 
+---
+
+## 🌟 Key Features
+
+* **Real-time Ephemeral Lounges:** Join a digital lounge strictly scoped to your specific mode of transit, operator, service number, and date.
+* **Privacy-First Discovery:** Control your visibility. Choose between *Quiet* (invisible), *Chat*, or *Game* modes to broadcast your interaction preferences to fellow passengers.
+* **Window Seat XO (Tic-Tac-Toe):** Send game invites and play real-time Tic-Tac-Toe with other passengers. Earn points for wins and draws!
+* **Unified Notification Board:** Elegant, animated inbox inside the Lounge to manage incoming connection and game requests.
+* **Friends Dashboard:** A persistent space to see all the connections you've made across your past journeys. You can even launch an XO game directly from here!
+* **Travelogue (Photo Gallery):** Snap and share photos from your trip. Photos are automatically stamped with your journey details and displayed in a beautiful grid.
+* **LiveKit Audio/Video Signaling:** Built-in signaling foundations for high-quality WebRTC audio and video calls.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router & Turbopack)
+* **Styling:** [Tailwind CSS v4](https://tailwindcss.com/) & [Framer Motion](https://www.framer.com/motion/)
+* **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL, Row-Level Security, RPCs, Storage, Realtime)
+* **WebRTC / Calls:** [LiveKit](https://livekit.io/)
+* **Icons:** [Lucide React](https://lucide.dev/)
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+* Node.js (v18+)
+* A Supabase account and project
+* A LiveKit Cloud account (optional, for A/V calls)
+
+### 2. Environment Setup
+Clone the repository and install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env` file in the root directory:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# LiveKit configuration (Optional)
+LIVEKIT_URL=your-livekit-url
+LIVEKIT_API_KEY=your-livekit-api-key
+LIVEKIT_API_SECRET=your-livekit-api-secret
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Application origin
+APP_ORIGIN=http://localhost:3000
+```
 
-## Learn More
+### 3. Database Setup (Supabase)
+SIDEQUEST relies heavily on Postgres RPCs (Remote Procedure Calls) and strict Row-Level Security (RLS) to ensure users can only interact with passengers on their specific journey.
 
-To learn more about Next.js, take a look at the following resources:
+1. Go to your Supabase Dashboard -> **SQL Editor**.
+2. Execute the migration files located in `supabase/migrations/` in chronological order.
+   * `20261010000100_core.sql` - Base schemas
+   * `20261010000200_access.sql` - RLS Policies
+   * ... *(Run all subsequent files up to `20261010001002_fix_join.sql`)*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Storage Setup (Travelogue)
+To enable the photo uploading feature:
+1. Go to Supabase Dashboard -> **Storage**.
+2. Create a new bucket named **`travelogue`** (all lowercase).
+3. Ensure you check **Public Bucket**.
+4. Run the following RLS policy in your SQL Editor to allow authenticated uploads:
+```sql
+grant insert, update, delete on public.drops to authenticated;
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+create policy "Users can insert their own drops"
+on storage.objects for insert to authenticated with check ( bucket_id = 'travelogue' );
 
-## Deploy on Vercel
+create policy "Allow public viewing"
+on storage.objects for select to public using ( bucket_id = 'travelogue' );
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 5. Run the Application
+Start the Next.js Turbopack development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🎨 Theme Configuration
+SIDEQUEST uses a warm, vibrant sunset theme designed to feel energetic and welcoming. The color variables can be customized directly in `src/app/globals.css`.
+
+## 🔒 Architecture Notes
+* **Secure by Default:** `authenticated` users are stripped of direct `INSERT`/`UPDATE` permissions on most public tables. All interactions (joining journeys, sending messages, requesting games) are mediated through strict `SECURITY DEFINER` Postgres functions.
+* **Journey Expiration:** Journeys naturally expire. The `join_journey` RPC automatically cleans up ghost sessions if a user attempts to join a new journey after their previous one has ended.
+
+---
+*Safe travels and happy sidequesting!* 🌍
