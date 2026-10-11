@@ -5,6 +5,7 @@ import { signout } from '../login/actions'
 import { Button } from '@/components/ui/Button'
 import { TicketCard } from '@/components/ui/TicketCard'
 import { LogOut } from 'lucide-react'
+import { FriendsListClient } from './FriendsListClient'
 
 export const instant = false
 
@@ -90,23 +91,7 @@ export default async function DashboardPage() {
 
       <div className="bg-panel rounded-3xl p-6 border border-primary/20">
         <h2 className="text-xl font-bold mb-4">My Connections (Friends)</h2>
-        {friendsList.length === 0 ? (
-          <p className="text-foreground/70">You haven't made any connections yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {friendsList.map((f: any) => (
-              <div key={f.conversation_id} className="flex items-center gap-3 bg-background p-3 rounded-2xl">
-                <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center font-bold text-background text-lg">
-                  {f.alias.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-bold">{f.alias}</p>
-                  <p className="text-xs text-foreground/50">Connected {new Date(f.connected_at).toLocaleDateString()}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <FriendsListClient friends={friendsList} currentUserId={user.id} />
       </div>
 
       <div>
@@ -132,5 +117,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-
-
