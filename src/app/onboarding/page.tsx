@@ -9,7 +9,9 @@ export default function OnboardingPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [isPending, setIsPending] = React.useState(false)
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     setIsPending(true)
     setError(null)
     const result = await saveProfile(formData)
@@ -27,7 +29,7 @@ export default function OnboardingPage() {
           Welcome to SIDEQUEST! Pick an alias and avatar seed. You can stay completely anonymous.
         </p>
 
-        <form action={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2" htmlFor="display_name">
               Display Name (Alias)

@@ -2,8 +2,9 @@
 
 import * as React from 'react'
 import { Modal } from '@/components/ui/Modal'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { requestConnection, blockUser, reportTarget, requestCall } from './consentActions'
+import { requestConnection, blockUser, reportTarget, requestCall, respondConnection } from './consentActions'
 import { createClient } from '@/lib/supabase/client'
 import { GameInterface } from './GameInterface'
 
@@ -21,14 +22,29 @@ export function PassengerSheet({ isOpen, onClose, passenger, currentUserId }: Pa
   const [conversation, setConversation] = React.useState<Record<string, any> | null>(null)
   const supabase = createClient()
   
+  const fetchConversation = React.useCallback(async () => {
+    if (!passenger) return
+    const uA = currentUserId < (passenger.user_id as string) ? currentUserId : passenger.user_id;
+    const uB = currentUserId < (passenger.user_id as string) ? passenger.user_id : currentUserId;
+    const { data } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('journey_id', passenger.journey_id)
+      .eq('user_a', uA)
+      .eq('user_b', uB)
+      .single();
+    
+    setConversation(data || null)
+  }, [passenger, currentUserId, supabase])
+
   // Reset states on open
   React.useEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null)
       setSuccessMsg(null)
+      fetchConversation()
     }
-  }, [isOpen])
+  }, [isOpen, fetchConversation])
 
   if (!passenger) return null
 
@@ -39,15 +55,27 @@ export function PassengerSheet({ isOpen, onClose, passenger, currentUserId }: Pa
 
   const handleRequest = async () => {
     setIsPending(true)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError(null)
+    setError(null)
     const result = await requestConnection(passenger.user_id as string)
     if (result.error) {
       setError(result.error)
     } else {
       setSuccessMsg('Request sent successfully.')
+      fetchConversation() // Refresh conversation status immediately
     }
     setIsPending(false)
+  }
+
+    const handleRespond = async (accept: boolean) => {
+    if (!conversation) return;
+    setIsPending(true);
+    const result = await respondConnection(conversation.id, accept);
+    if (result.error) setError(result.error);
+    else {
+      setSuccessMsg(accept ? "Connection accepted." : "Connection declined.");
+      fetchConversation();
+    }
+    setIsPending(false);
   }
 
   const handleBlock = async () => {
@@ -58,6 +86,7 @@ export function PassengerSheet({ isOpen, onClose, passenger, currentUserId }: Pa
       setError(result.error)
     } else {
       setSuccessMsg('User blocked.')
+      fetchConversation()
     }
     setIsPending(false)
   }
@@ -86,7 +115,7 @@ export function PassengerSheet({ isOpen, onClose, passenger, currentUserId }: Pa
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isMe ? 'Your Profile' : 'Passenger'}>
-      <div className="flex flex-col gap-6">
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex flex-col gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full flex items-center justify-center text-background font-bold text-2xl bg-accent">
             {alias.charAt(0).toUpperCase()}
@@ -122,23 +151,47 @@ export function PassengerSheet({ isOpen, onClose, passenger, currentUserId }: Pa
 
         {!isMe && (
           <div className="grid grid-cols-1 gap-3 mt-4 pt-4 border-t border-foreground/10">
-            <Button onClick={handleRequest} disabled={isPending}>
-              Request Connection
-            </Button>
+            
+            {(!conversation || conversation.status === 'declined' || conversation.status === 'revoked') && (
+              <Button onClick={handleRequest} disabled={isPending}>
+                Request Connection
+              </Button>
+            )}
+            
+            {conversation?.status === 'pending' && conversation.requested_by === currentUserId && (
+              <Button disabled variant="secondary" className="opacity-50">Request Pending...</Button>
+            )}
+
+            {conversation?.status === 'pending' && conversation.requested_by !== currentUserId && (
+              <div className="flex gap-2">
+                <Button variant="secondary" className="flex-1 text-destructive" onClick={() => handleRespond(false)} disabled={isPending}>Decline</Button>
+                <Button className="flex-1" onClick={() => handleRespond(true)} disabled={isPending}>Accept Request</Button>
+              </div>
+            )}
+
+            {conversation?.status === 'accepted' && (
+              <div className="flex gap-2">
+                <Button onClick={() => handleCall('audio')} disabled={isPending} className="flex-1 bg-primary text-background">Audio Call</Button>
+                <Button onClick={() => handleCall('video')} disabled={isPending} className="flex-1 bg-primary text-background">Video Call</Button>
+              </div>
+            )}
+
             <Button variant="secondary" onClick={handleBlock} disabled={isPending}>
               Block User
             </Button>
+            
             <Button variant="ghost" className="text-destructive" onClick={handleReport} disabled={isPending}>
               Report User
             </Button>
           </div>
         )}
-      {conversation && !isMe && (
+        
+        {conversation?.status === 'accepted' && !isMe && (
           <div className="mt-6 border-t border-foreground/10 pt-6">
             <GameInterface conversationId={conversation.id} currentUserId={currentUserId} otherUserId={passenger.user_id as string} />
           </div>
         )}
-      </div>
+      </motion.div>
     </Modal>
   )
 }

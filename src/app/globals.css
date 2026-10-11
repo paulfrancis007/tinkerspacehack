@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0B1220;
-  --panel: #162032;
-  --foreground: #F4F1E8;
-  --primary: #D7FF64;
-  --accent: #7DDCF5;
+  --background: #1C1525;
+  --panel: #2A203B;
+  --foreground: #FFF3EB;
+  --primary: #FF6B6B;
+  --accent: #FFC436;
   --destructive: #EF4444; /* functional exception for error */
 }
 
@@ -39,3 +39,4 @@ body {
     transition-delay: 0s !important;
   }
 }
+

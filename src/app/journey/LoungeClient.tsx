@@ -6,6 +6,7 @@ import { leaveJourney, updateMembership } from './actions'
 import { Button } from '@/components/ui/Button'
 import { TicketCard } from '@/components/ui/TicketCard'
 import { PassengerSheet } from './PassengerSheet'
+import { motion } from 'framer-motion'
 import { RequestInbox } from './RequestInbox'
 import { LogOut } from 'lucide-react'
 import { ChatInterface } from './ChatInterface'
@@ -26,6 +27,7 @@ type MembershipRecord = Record<string, unknown>;
 export function LoungeClient({ initialMembership, journey, currentUserId }: { initialMembership: MembershipRecord, journey: Record<string, unknown>, currentUserId: string }) {
   const [members, setMembers] = React.useState<MembershipRecord[]>([initialMembership])
   const [discoverable, setDiscoverable] = React.useState(Boolean(initialMembership.discoverable))
+    const [socialMode, setSocialMode] = React.useState(initialMembership.social_mode as string)
   const [isPending, setIsPending] = React.useState(false)
   const [hasConsent, setHasConsent] = React.useState(Boolean(initialMembership.lounge_consent))
   const [currentTime, setCurrentTime] = React.useState<number>(0)
@@ -46,7 +48,7 @@ export function LoungeClient({ initialMembership, journey, currentUserId }: { in
 
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentTime(Date.now())
+    // setCurrentTime(Date.now())
     
     // Initial fetch to get everyone currently visible
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -94,14 +96,20 @@ export function LoungeClient({ initialMembership, journey, currentUserId }: { in
     setIsPending(true)
     const nextState = !discoverable
     setDiscoverable(nextState)
-    await updateMembership(journey.id as string, nextState, Boolean(initialMembership.lounge_consent), initialMembership.social_mode as string)
+    await updateMembership(journey.id as string, nextState, hasConsent, socialMode)
     setIsPending(false)
   }
 
-  const handleGrantConsent = async () => {
+  const handleSocialMode = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newMode = e.target.value;
+      setSocialMode(newMode);
+      await updateMembership(journey.id as string, discoverable, hasConsent, newMode);
+    }
+
+    const handleGrantConsent = async () => {
     setIsPending(true)
     setHasConsent(true)
-    await updateMembership(journey.id as string, discoverable, true, initialMembership.social_mode as string)
+    await updateMembership(journey.id as string, discoverable, true, socialMode)
     setIsPending(false)
   }
 
@@ -138,6 +146,20 @@ export function LoungeClient({ initialMembership, journey, currentUserId }: { in
         >
           {discoverable ? 'Go Dark' : 'Become Visible'}
         </Button>
+      </div>
+
+      <div className="bg-panel rounded-3xl p-6 mb-8 flex justify-between items-center">
+        <div>
+          <h3 className="font-bold">Social Mode</h3>
+          <p className="text-sm text-foreground/70">
+            Set your interaction preference.
+          </p>
+        </div>
+        <select value={socialMode} onChange={handleSocialMode} disabled={isPending} className="bg-background border border-foreground/10 rounded-xl p-2 text-sm text-foreground">
+          <option value="quiet">Quiet (No Invites)</option>
+          <option value="chat">Chat</option>
+          <option value="game">Game</option>
+        </select>
       </div>
 
       <RequestInbox currentUserId={currentUserId} journeyId={journey.id as string} />
@@ -207,6 +229,7 @@ export function LoungeClient({ initialMembership, journey, currentUserId }: { in
     </div>
   )
 }
+
 
 
 

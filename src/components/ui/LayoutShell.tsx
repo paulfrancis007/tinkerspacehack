@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Compass, MessageSquare, Gamepad2, User } from 'lucide-react';
+import { Compass, User, Camera } from 'lucide-react';
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,8 +15,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { label: 'Lounge', href: '/journey', icon: Compass },
-    { label: 'Chat', href: '/chat', icon: MessageSquare },
-    { label: 'Play', href: '/play', icon: Gamepad2 },
+            { label: 'Travelogue', href: '/travelogue', icon: Camera },
     { label: 'Me', href: '/dashboard', icon: User },
   ];
 
@@ -66,3 +65,4 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

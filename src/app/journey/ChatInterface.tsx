@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Send, Trash } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { v4 as uuidv4 } from 'uuid'
 
 interface Message {
@@ -182,10 +183,11 @@ export function ChatInterface({
         ref={listRef}
         className="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-4"
       >
+        <AnimatePresence initial={false}>
         {messages.map(m => {
           const isMe = m.sender_id === currentUserId
           return (
-            <div key={m.id || m.client_nonce} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+            <motion.div key={m.id || m.client_nonce} initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 25 }} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
               <div className={`max-w-[80%] p-3 rounded-2xl ${isMe ? 'bg-primary text-background' : 'bg-background text-foreground'}`}>
                 <div className="break-words">{m.body}</div>
               </div>
@@ -231,9 +233,10 @@ export function ChatInterface({
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           )
         })}
+        </AnimatePresence>
 
         {hasMore && (
           <Button 
@@ -290,4 +293,6 @@ function formatMessage(raw: Record<string, any>, currentUserId: string): Message
     reactions
   }
 }
+
+
 

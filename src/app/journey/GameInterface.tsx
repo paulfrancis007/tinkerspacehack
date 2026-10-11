@@ -43,13 +43,15 @@ export function GameInterface({ conversationId, currentUserId, otherUserId }: { 
   const handleInvite = async () => {
     setLoading(true)
     const nonce = uuidv4()
-    await supabase.rpc('invite_game', { p_conversation_id: conversationId, p_nonce: nonce })
+    const { error } = await supabase.rpc('invite_game', { p_conversation_id: conversationId, p_nonce: nonce })
+    if (error) { alert('Invite error: ' + error.message); setLoading(false); }
   }
 
   const handleRespond = async (accept: boolean) => {
     if (!game) return
     setLoading(true)
-    await supabase.rpc('respond_game', { p_game_id: game.id, p_accept: accept })
+    const { error } = await supabase.rpc('respond_game', { p_game_id: game.id, p_accept: accept })
+    if (error) { alert('Respond error: ' + error.message); setLoading(false); }
   }
 
   const handlePlayMove = async (cellIndex: number) => {
@@ -161,3 +163,4 @@ export function GameInterface({ conversationId, currentUserId, otherUserId }: { 
     </div>
   )
 }
+

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
 export function JoinForm() {
+  const [today, setToday] = React.useState('')
+  React.useEffect(() => { setToday(new Date().toISOString().split('T')[0]) }, [])
   const [error, setError] = React.useState<string | null>(null)
   const [isPending, setIsPending] = React.useState(false)
 
@@ -32,7 +34,7 @@ export function JoinForm() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-2">Date (Local)</label>
-          <Input type="date" name="service_date" required defaultValue={new Date().toISOString().split('T')[0]} />
+          <Input type="date" name="service_date" required defaultValue={today} />
         </div>
       </div>
 
@@ -74,3 +76,4 @@ export function JoinForm() {
     </form>
   )
 }
+

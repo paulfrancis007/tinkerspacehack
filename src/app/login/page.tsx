@@ -13,7 +13,9 @@ function LoginForm() {
   const [error, setError] = React.useState<string | null>(null)
   const [isPending, setIsPending] = React.useState(false)
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     setIsPending(true)
     setError(null)
     const result = await login(formData)
@@ -31,7 +33,7 @@ function LoginForm() {
           Public signup is currently disabled for this closed demo. Please sign in with your invite-only test account. Verified signup flows are unavailable unless SMTP is configured.
         </p>
 
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input type="hidden" name="redirect_to" value={redirectTo} />
           
           <div>
